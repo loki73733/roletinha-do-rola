@@ -2,84 +2,165 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>Roleta Simples</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Roleta Personalizada</title>
 <style>
-  body, html {
-    height: 100%;
-    margin: 0;
+  body {
+    font-family: 'Arial', sans-serif;
+    background: #222;
+    color: #eee;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    font-family: Arial, sans-serif;
-    background: #f0f0f0;
+    padding: 2rem;
+    min-height: 100vh;
+    margin: 0;
   }
-
   h1 {
-    margin-bottom: 30px;
-    text-align: center;
+    margin-bottom: 1rem;
   }
-
-  button {
-    width: 120px;
-    height: 120px;
+  #roleta {
+    position: relative;
+    width: 300px;
+    height: 300px;
     border-radius: 50%;
-    border: none;
-    background: #007bff;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-    transition: background 0.3s ease;
+    border: 8px solid #555;
+    overflow: hidden;
+    box-shadow: 0 0 15px #000;
   }
-
-  button:hover {
-    background: #0056b3;
-  }
-
-  #resultado {
-    margin-top: 30px;
-    font-size: 1.3em;
+  .fatia {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    top: 50%;
+    left: 50%;
+    transform-origin: 0% 0%;
+    text-align: right;
+    padding-right: 10px;
+    box-sizing: border-box;
     font-weight: bold;
-    color: #333;
-    max-width: 300px;
+    color: #fff;
+    user-select: none;
+  }
+  #botaoGirar {
+    margin-top: 1.5rem;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    background: #e74c3c;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    transition: background 0.3s;
+  }
+  #botaoGirar:hover {
+    background: #c0392b;
+  }
+  #resultado {
+    margin-top: 1.5rem;
+    font-size: 1.5rem;
+    min-height: 2rem;
     text-align: center;
+  }
+  #seta {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    margin-left: -10px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 20px solid #e74c3c;
+    z-index: 10;
   }
 </style>
 </head>
 <body>
 
-<h1>Roleta fake até dia 28</h1>
+<h1>Roleta Personalizada</h1>
+<div id="roletaContainer" style="position: relative;">
+  <div id="seta"></div>
+  <div id="roleta"></div>
+</div>
 
-<button onclick="girarRoleta()">Girar</button>
-
+<button id="botaoGirar">Girar Roleta</button>
 <div id="resultado"></div>
 
 <script>
-  // Prêmios e suas chances em %
   const premios = [
-    { nome: "manual & chiclete", chance: 20 },
-    { nome: "óculos 3D ", chance: 15 },
-    { nome: "chifres chifres majestosos malignos", chance: 10 },
-    { nome: "ovo de pesar noturno", chance: 15 },
-    { nome: "ovo de kiel-d-01", chance: 15 },
-    { nome: "10x passaporte", chance: 15 },
-    { nome: "manual de combate", chance: 10 }
+    { nome: "Manual & Chiclete", cor: "#1abc9c", peso: 20 },
+    { nome: "Óculos 3D", cor: "#3498db", peso: 20 },
+    { nome: "Chifres", cor: "#9b59b6", peso: 20 },
+    { nome: "Chifres Majestosos Malignos", cor: "#e67e22", peso: 20 },
+
+    { nome: "🥚 Ovo de Pesar Noturno", cor: "#8e44ad", peso: 2 },
+    { nome: "🥚 Ovo de Kiel", cor: "#9b59b6", peso: 2 },
+    { nome: "🥚 Ovo de Freoni", cor: "#34495e", peso: 2 },
+
+    { nome: "Passaporte Manual de Combate", cor: "#f39c12", peso: 3 },
+
+    { nome: "Jantar com o Rufio", cor: "#e74c3c", peso: 40 },
   ];
 
-  function girarRoleta() {
-    let totalChance = premios.reduce((acc, premio) => acc + premio.chance, 0);
-    let sorteio = Math.random() * totalChance;
-    let acumulado = 0;
+  const roleta = document.getElementById("roleta");
+  const botaoGirar = document.getElementById("botaoGirar");
+  const resultado = document.getElementById("resultado");
 
-    for (let premio of premios) {
-      acumulado += premio.chance;
-      if (sorteio <= acumulado) {
-        document.getElementById("resultado").innerText = `Você ganhou: ${premio.nome}!`;
-        break;
-      }
+  // Calcula o total dos pesos
+  const pesoTotal = premios.reduce((acc, p) => acc + p.peso, 0);
+
+  // Cria fatias da roleta
+  function criarFatiass() {
+    roleta.innerHTML = "";
+    const qtd = premios.length;
+    const anguloPorFatia = 360 / qtd;
+
+    for(let i = 0; i < qtd; i++) {
+      const fatia = document.createElement("div");
+      fatia.classList.add("fatia");
+      fatia.style.backgroundColor = premios[i].cor;
+      fatia.style.transform = `rotate(${anguloPorFatia * i}deg) skewY(-${90 - anguloPorFatia}deg)`;
+      fatia.textContent = premios[i].nome;
+      roleta.appendChild(fatia);
     }
   }
+
+  criarFatiass();
+
+  // Função que escolhe um prêmio aleatório considerando peso
+  function escolherPremio() {
+    let rand = Math.random() * pesoTotal;
+    for (let i = 0; i < premios.length; i++) {
+      rand -= premios[i].peso;
+      if (rand <= 0) return i;
+    }
+    return 0; // fallback
+  }
+
+  let girando = false;
+
+  botaoGirar.onclick = () => {
+    if (girando) return;
+
+    girando = true;
+    resultado.textContent = "";
+    const indiceEscolhido = escolherPremio();
+    const qtd = premios.length;
+    const anguloPorFatia = 360 / qtd;
+
+    // O ângulo para parar a roleta na fatia escolhida
+    // Vamos girar várias voltas + parar no meio da fatia escolhida
+    const giroTotal = 360 * 5 + (360 - (anguloPorFatia * indiceEscolhido + anguloPorFatia / 2));
+
+    roleta.style.transition = "transform 5s cubic-bezier(0.33, 1, 0.68, 1)";
+    roleta.style.transform = `rotate(${giroTotal}deg)`;
+
+    setTimeout(() => {
+      resultado.textContent = `Você ganhou: ${premios[indiceEscolhido].nome}`;
+      girando = false;
+    }, 5000);
+  };
 </script>
 
 </body>
