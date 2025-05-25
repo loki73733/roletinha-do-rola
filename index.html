@@ -17,23 +17,31 @@
     margin: 0;
     padding: 2rem;
   }
-  #roleta {
+  #containerRoleta {
     position: relative;
+    width: 320px;
+    height: 320px;
+  }
+  #roleta {
     width: 320px;
     height: 320px;
     border-radius: 50%;
     background: #3498db;
     box-shadow: 0 0 20px #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     user-select: none;
+    /* Vai receber a rotação */
+    transition: transform 0.5s ease-out;
   }
   #nomePremio {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     font-size: 15px;
     color: white;
     text-align: center;
-    padding: 0 10px;
+    pointer-events: none; /* para clique passar para a roleta */
+    max-width: 70%;
     line-height: 1.3;
   }
   #seta {
@@ -68,7 +76,8 @@
 
 <h1>Roleta Simplificada</h1>
 
-<div id="roleta">
+<div id="containerRoleta">
+  <div id="roleta"></div>
   <div id="seta"></div>
   <div id="nomePremio">Clique em Girar</div>
 </div>
@@ -140,4 +149,3 @@
 
 </body>
 </html>
-
