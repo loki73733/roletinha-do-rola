@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Roleta Simples</title>
+<style>
+  body, html {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+  }
+
+  h1 {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  button {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: none;
+    background: #007bff;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    transition: background 0.3s ease;
+  }
+
+  button:hover {
+    background: #0056b3;
+  }
+
+  #resultado {
+    margin-top: 30px;
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #333;
+    max-width: 300px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Roleta fake até dia 28</h1>
+
+<button onclick="girarRoleta()">Girar</button>
+
+<div id="resultado"></div>
+
+<script>
+  // Prêmios e suas chances em %
+  const premios = [
+    { nome: "manual & chiclete", chance: 20 },
+    { nome: "óculos 3D ", chance: 15 },
+    { nome: "chifres chifres majestosos malignos", chance: 10 },
+    { nome: "ovo de pesar noturno", chance: 15 },
+    { nome: "ovo de kiel-d-01", chance: 15 },
+    { nome: "10x passaporte", chance: 15 },
+    { nome: "manual de combate", chance: 10 }
+  ];
+
+  function girarRoleta() {
+    let totalChance = premios.reduce((acc, premio) => acc + premio.chance, 0);
+    let sorteio = Math.random() * totalChance;
+    let acumulado = 0;
+
+    for (let premio of premios) {
+      acumulado += premio.chance;
+      if (sorteio <= acumulado) {
+        document.getElementById("resultado").innerText = `Você ganhou: ${premio.nome}!`;
+        break;
+      }
+    }
+  }
+</script>
+
+</body>
+</html>
