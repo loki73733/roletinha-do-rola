@@ -1,147 +1,170 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Roleta Visual</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #222;
-      color: #eee;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 2rem;
-    }
-
-    #containerRoleta {
-      position: relative;
-      width: 320px;
-      height: 320px;
-    }
-
-    #roletaCanvas {
-      width: 320px;
-      height: 320px;
-      border-radius: 50%;
-      box-shadow: 0 0 20px #000;
-    }
-
-    #seta {
-      position: absolute;
-      top: -25px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 15px solid transparent;
-      border-right: 15px solid transparent;
-      border-bottom: 30px solid #e74c3c;
-      z-index: 10;
-    }
-
-    #botaoGirar {
-      margin-top: 20px;
-      padding: 1rem 2rem;
-      font-size: 1.2rem;
-      cursor: pointer;
-      background: #e74c3c;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      transition: background 0.3s;
-    }
-
-    #botaoGirar:hover {
-      background: #c0392b;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Roleta do rola fake</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #222;
+    color: #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 2rem;
+  }
+  #containerRoleta {
+    position: relative;
+    width: 320px;
+    height: 320px;
+  }
+  #roleta {
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: #3498db;
+    box-shadow: 0 0 20px #000;
+    user-select: none;
+    transition: transform 0.5s ease-out;
+  }
+  #nomePremio {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    color: white;
+    text-align: center;
+    pointer-events: none;
+    max-width: 70%;
+    line-height: 1.3;
+    font-weight: bold;
+  }
+  #seta {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 30px solid #e74c3c;
+    z-index: 10;
+  }
+  #botaoGirar {
+    margin-top: 20px;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    background: #e74c3c;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    transition: background 0.3s;
+  }
+  #botaoGirar:hover {
+    background: #c0392b;
+  }
+</style>
 </head>
 <body>
 
-<h1>Roleta Visual</h1>
+<h1>Roleta do rola fake</h1>
 
 <div id="containerRoleta">
-  <canvas id="roletaCanvas" width="320" height="320"></canvas>
+  <div id="roleta"></div>
   <div id="seta"></div>
+  <div id="nomePremio">Clique em Girar</div>
 </div>
 
 <button id="botaoGirar">Girar Roleta</button>
 
 <script>
-  const canvas = document.getElementById("roletaCanvas");
-  const ctx = canvas.getContext("2d");
-  const botaoGirar = document.getElementById("botaoGirar");
+  const roleta = document.getElementById('roleta');
+  const nomePremio = document.getElementById('nomePremio');
+  const botaoGirar = document.getElementById('botaoGirar');
 
-  const img = new Image();
-  img.src = "https://i.imgur.com/IsYiIRU.png";
+  const premios = [
+    { nome: "Manual & Chiclete", cor: "#FF6347", peso: 20 },
+    { nome: "Óculos 3D", cor: "#FFD700", peso: 20 },
+    { nome: "Chifres", cor: "#ADFF2F", peso: 20 },
+    { nome: "Chifres Majestosos Malignos", cor: "#00CED1", peso: 20 },
+    { nome: "🥚 Ovo de Pesar Noturno", cor: "#8A2BE2", peso: 10 },
+    { nome: "🥚 Ovo de Kiel", cor: "#FF69B4", peso: 10 },
+    { nome: "🥚 Ovo de Freoni", cor: "#FF4500", peso: 10 },
+    { nome: "Passaporte Manual de Combate", cor: "#7FFF00", peso: 10 },
+    { nome: "Jantar com o Rufio", cor: "#7FFF00", peso: 40 }
+  ];
 
-  let rotacaoAtual = 0;
+  const totalPesos = premios.reduce((acc, p) => acc + p.peso, 0);
   let girando = false;
+  let rotacaoAtual = 0;
+  let animacaoNomesInterval;
 
-  const setores = 9; // número de fatias
-  const pesos = [20, 20, 20, 20, 10, 10, 10, 10, 40]; // deve somar 160
-  const somaPesos = pesos.reduce((a, b) => a + b, 0);
-
-  img.onload = () => {
-    desenharRoleta();
-  };
-
-  function desenharRoleta() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.rotate(rotacaoAtual);
-    ctx.drawImage(img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
-    ctx.restore();
-  }
-
-  function escolherIndicePorPeso() {
-    let r = Math.random() * somaPesos;
-    for (let i = 0; i < pesos.length; i++) {
-      r -= pesos[i];
-      if (r <= 0) return i;
+  function escolherPremio() {
+    let rand = Math.random() * totalPesos;
+    for (let i = 0; i < premios.length; i++) {
+      rand -= premios[i].peso;
+      if (rand <= 0) return i;
     }
     return 0;
   }
 
-  function girarRoleta() {
+  function startAnimacaoNomes() {
+    let idx = 0;
+    animacaoNomesInterval = setInterval(() => {
+      const premio = premios[idx];
+      nomePremio.textContent = premio.nome;
+      nomePremio.style.color = premio.cor;
+      idx = (idx + 1) % premios.length;
+    }, 100); // troca a cada 100ms, bem rápido
+  }
+
+  function stopAnimacaoNomes(indiceFinal) {
+    clearInterval(animacaoNomesInterval);
+    nomePremio.textContent = premios[indiceFinal].nome;
+    nomePremio.style.color = premios[indiceFinal].cor;
+  }
+
+  botaoGirar.addEventListener('click', () => {
     if (girando) return;
     girando = true;
+    nomePremio.textContent = "Girando...";
+    nomePremio.style.color = "#fff";
 
-    const indice = escolherIndicePorPeso();
-    const anguloPorSetor = 360 / setores;
-    const anguloAlvo = 360 - (indice * anguloPorSetor + anguloPorSetor / 2);
+    startAnimacaoNomes();
 
-    const voltas = 5;
-    const anguloFinal = (voltas * 360 + anguloAlvo) * (Math.PI / 180);
+    const indicePremio = escolherPremio();
+
+    // Gira várias voltas + para no prêmio escolhido
+    const giroFinal = 360 * 5 + (360 - (indicePremio * 360 / premios.length) - 360 / (premios.length * 2));
 
     const duracao = 4000;
-    let inicio = null;
-    const rotacaoInicial = rotacaoAtual;
+    const inicioRotacao = rotacaoAtual;
+    let inicioTempo = null;
 
     function animar(timestamp) {
-      if (!inicio) inicio = timestamp;
-      const progresso = Math.min((timestamp - inicio) / duracao, 1);
+      if (!inicioTempo) inicioTempo = timestamp;
+      const tempoDecorrido = timestamp - inicioTempo;
+      const progresso = Math.min(tempoDecorrido / duracao, 1);
       const easeOut = 1 - Math.pow(1 - progresso, 3);
-      rotacaoAtual = rotacaoInicial + easeOut * (anguloFinal - rotacaoInicial);
-      desenharRoleta();
-
+      rotacaoAtual = inicioRotacao + easeOut * (giroFinal * Math.PI / 180);
+      roleta.style.transform = rotate(${rotacaoAtual}rad);
       if (progresso < 1) {
         requestAnimationFrame(animar);
       } else {
         girando = false;
+        stopAnimacaoNomes(indicePremio);
       }
     }
 
     requestAnimationFrame(animar);
-  }
-
-  botaoGirar.addEventListener("click", girarRoleta);
+  });
 </script>
 
 </body>
